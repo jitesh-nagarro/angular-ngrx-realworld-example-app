@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angular NgRx NX RealWorld - Architecture Diagram</title>
+    <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        /* Header Design */
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .tech-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tech-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Sub-header with Controls */
+        .controls {
+            background: #f1f5f9;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-link {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .zoom-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background: #2563eb;
+        }
+
+        .zoom-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .zoom-indicator {
+            font-weight: 600;
+            font-size: 14px;
+            color: #475569;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Diagram Container */
+        .diagram-viewport {
+            height: calc(100vh - 120px);
+            overflow: auto;
+            position: relative;
+            background: linear-gradient(45deg, #f8fafc 25%, transparent 25%), 
+                        linear-gradient(-45deg, #f8fafc 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #f8fafc 75%), 
+                        linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        .diagram-container {
+            width: fit-content;
+            height: fit-content;
+            min-width: 100%;
+            min-height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 200px; /* Large padding for scrolling space */
+        }
+
+        #diagramWrapper {
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            position: relative;
+        }
+
+        /* Mermaid Diagram Styling */
+        #mermaid-diagram .node rect {
+            min-width: 400px !important;
+            min-height: 120px !important;
+            rx: 12px !important;
+            ry: 12px !important;
+        }
+
+        #mermaid-diagram .node text {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+        }
+
+        #mermaid-diagram .node .label {
+            padding: 20px 25px !important;
+        }
+
+        #mermaid-diagram .node .nodeLabel {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+        }
+
+        #mermaid-diagram .cluster rect {
+            stroke-width: 2px !important;
+            rx: 15px !important;
+            ry: 15px !important;
+            min-height: 180px !important;
+        }
+
+        #mermaid-diagram .cluster text {
+            font-size: 28px !important;
+            font-weight: 800 !important;
+        }
+
+        #mermaid-diagram text {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+        }
+
+        #mermaid-diagram .edgeLabel {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+        }
+
+        #mermaid-diagram .node text tspan {
+            font-size: inherit !important;
+        }
+
+        /* Legend */
+        .legend {
+            background: #1e293b;
+            color: white;
+            padding: 16px 24px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .color-store { background: #3b82f6; }
+        .color-service { background: #10b981; }
+        .color-component { background: #f59e0b; }
+        .color-external { background: #ef4444; }
+        .color-config { background: #8b5cf6; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>Angular NgRx NX RealWorld Example App - Architecture</h1>
+        <div class="tech-badges">
+            <span class="tech-badge">Angular 20</span>
+            <span class="tech-badge">NgRx Signals</span>
+            <span class="tech-badge">TypeScript 5.8</span>
+            <span class="tech-badge">Nx 21</span>
+        </div>
+    </header>
+
+    <!-- Sub-header with Controls -->
+    <div class="controls">
+        <div class="nav-links">
+            <a href="https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app" target="_blank" class="nav-link">📁 GitHub Repository</a>
+            <a href="./PROJECT_DOCUMENTATION.md" target="_blank" class="nav-link">📖 Documentation</a>
+        </div>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <span class="zoom-indicator" id="zoomIndicator">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <button class="zoom-btn" onclick="fitToScreen()">Fit Screen</button>
+            <button class="zoom-btn" onclick="resetZoom()">100%</button>
+        </div>
+    </div>
+
+    <!-- Diagram Viewport -->
+    <div class="diagram-viewport">
+        <div class="diagram-container" id="diagramContainer">
+            <div id="diagramWrapper">
+                <div id="mermaid-diagram"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color color-store"></div>
+            <span>NgRx Signal Stores</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color color-service"></div>
+            <span>API Services</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color color-component"></div>
+            <span>Components</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color color-external"></div>
+            <span>External APIs</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color color-config"></div>
+            <span>Configuration</span>
+        </div>
+    </div>
+
+    <script>
+        // Mermaid Configuration
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                nodeSpacing: 60,
+                rankSpacing: 80,
+                curve: 'basis',
+                padding: 20,
+                fontSize: 28,
+                useMaxWidth: false,
+                htmlLabels: true
+            },
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                primaryTextColor: '#ffffff',
+                primaryBorderColor: '#2563eb',
+                lineColor: '#64748b',
+                sectionBkgColor: '#f1f5f9',
+                altSectionBkgColor: '#e2e8f0',
+                gridColor: '#e2e8f0',
+                tertiaryColor: '#f8fafc',
+                fontSize: '28px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }
+        });
+
+        // Architecture Diagram Definition
+        // 
+        // TEMPLATE FOR FUTURE MERMAID DIAGRAMS WITH ZOOM/SCROLL FUNCTIONALITY
+        // ====================================================================
+        // 
+        // This diagram includes advanced zoom and scroll functionality. To replicate this in future diagrams:
+        //
+        // 1. CSS REQUIREMENTS:
+        //    - .diagram-viewport: height: calc(100vh - 120px); overflow: auto; (main scroll container)
+        //    - .diagram-container: width: fit-content; height: fit-content; min-width: 100%; min-height: 100%; padding: 200px;
+        //    - #diagramWrapper: transition: transform 0.3s ease; transform-origin: center center;
+        //
+        // 2. ZOOM FUNCTIONALITY:
+        //    - currentZoom variable (1.0 = 100%)
+        //    - zoomStep (0.2), minZoom (0.2), maxZoom (5.0)
+        //    - updateZoom(zoom): Updates transform scale and zoom indicator
+        //    - zoomToPoint(newZoom): Centers zoom on viewport center using percentage-based positioning
+        //    - Key functions: zoomIn(), zoomOut(), resetZoom(), fitToScreen(), centerDiagram()
+        //
+        // 3. SCROLL BEHAVIOR:
+        //    - Large padding (200px) on .diagram-container provides natural scroll space
+        //    - fit-content sizing ensures container grows with diagram content
+        //    - zoomToPoint() maintains center point during zoom by tracking scroll percentage
+        //
+        // 4. EVENT HANDLERS:
+        //    - Keyboard: Ctrl/Cmd + [+, -, 0] for zoom in/out/reset
+        //    - Mouse wheel: Ctrl/Cmd + wheel for zoom
+        //    - Window resize: Auto-fit to screen
+        //
+        // 5. INITIALIZATION:
+        //    - initializeOptimalZoom(): Auto-calculates best fit zoom on load
+        //    - setTimeout delays ensure DOM is ready before calculations
+        //
+        // 6. CONTROLS UI:
+        //    - Zoom buttons: +, -, Fit Screen, 100%
+        //    - Zoom indicator showing current percentage
+        //    - Place in .controls div with .zoom-controls class
+        //
+        // Copy the entire CSS block, JavaScript zoom functions, and event handlers 
+        // when creating new interactive Mermaid diagrams.
+        //
+        const diagramDefinition = `
+flowchart TD
+    %% ======================================================================================
+    %% DIAGRAM GENERATION TEMPLATE - COPY THIS STRUCTURE FOR FUTURE DIAGRAMS
+    %% ======================================================================================
+    %% 
+    %% CSS LAYOUT REQUIREMENTS:
+    %% - .diagram-viewport: height: calc(100vh - 120px), overflow: auto, grid background
+    %% - .diagram-container: width/height: fit-content, min-width/height: 100%, padding: 200px
+    %% - #diagramWrapper: transform-origin: center center, transition: transform 0.3s ease
+    %% 
+    %% ZOOM/SCROLL FUNCTIONALITY:
+    %% - Uses percentage-based center tracking for zoom operations
+    %% - zoomToPoint() maintains viewport center using container.scrollWidth/scrollHeight ratios
+    %% - Boundary checking prevents scrolling beyond container limits
+    %% - Keyboard shortcuts: Ctrl/Cmd + +/- for zoom, Ctrl/Cmd + 0 for reset
+    %% - Mouse wheel zoom with Ctrl/Cmd modifier
+    %% 
+    %% MERMAID CONFIGURATION:
+    %% - nodeSpacing: 60, rankSpacing: 80, fontSize: 28
+    %% - useMaxWidth: false, htmlLabels: true
+    %% - Custom styling for nodes (min-width: 400px, min-height: 120px)
+    %% - Color-coded node classes with stroke-width: 3px
+    %% ======================================================================================
+
+    %% External Dependencies
+    subgraph "External Layer"
+        API["🌐 RealWorld API<br/>real-world-app-39656dff2ddc.herokuapp.com"]:::external
+        CSS["🎨 External CSS<br/>demo.productionready.io"]:::external
+        ICONS["🔗 Ionicons<br/>code.ionicframework.com"]:::external
+    end
+
+    %% Application Core
+    subgraph "Application Core"
+        APP["📱 App Component<br/>Bootstrap & Layout"]:::component
+        CONFIG["⚙️ App Config<br/>Providers & Routes"]:::config
+        ENV["🌍 Environment<br/>API URL Configuration"]:::config
+    end
+
+    %% Authentication Layer
+    subgraph "Authentication Domain"
+        AUTHSTORE["🏪 Auth Store<br/>User State & JWT"]:::store
+        AUTHSERVICE["🔐 Auth Service<br/>Login/Register/User"]:::service
+        AUTHGUARD["🛡️ Auth Guard<br/>Route Protection"]:::service
+        AUTHCOMP["📝 Auth Components<br/>Login/Register Forms"]:::component
+    end
+
+    %% Articles Domain
+    subgraph "Articles Domain"
+        ARTICLESTORE["🏪 Article Store<br/>Single Article State"]:::store
+        ARTICLESLISTSTORE["🏪 Articles List Store<br/>Feed & Pagination"]:::store
+        ARTICLESSERVICE["📰 Articles Service<br/>CRUD Operations"]:::service
+        ACTIONSSERVICE["⭐ Actions Service<br/>Follow/Favorite"]:::service
+        ARTICLECOMP["📖 Article Component<br/>Article Display"]:::component
+        ARTICLEEDIT["✏️ Article Editor<br/>Create/Edit Articles"]:::component
+        ARTICLESLIST["📋 Articles List<br/>Feed Display"]:::component
+    end
+
+    %% Profile Domain
+    subgraph "Profile Domain"
+        PROFILESTORE["🏪 Profile Store<br/>User Profile State"]:::store
+        PROFILESERVICE["👤 Profile Service<br/>Profile Data"]:::service
+        PROFILECOMP["👥 Profile Component<br/>User Profiles"]:::component
+        PROFILERESOLVER["🔄 Profile Resolver<br/>Data Preloading"]:::service
+    end
+
+    %% Home & Core Features
+    subgraph "Home & Navigation"
+        HOMESTORE["🏪 Home Store<br/>Tags State"]:::store
+        HOMESERVICE["🏠 Home Service<br/>Tags API"]:::service
+        HOMECOMP["🏡 Home Component<br/>Homepage Feed"]:::component
+        NAVBAR["🧭 Navigation<br/>Global Navigation"]:::component
+        FOOTER["📄 Footer<br/>Page Footer"]:::component
+    end
+
+    %% Settings & Forms
+    subgraph "Settings & Forms"
+        SETTINGSCOMP["⚙️ Settings Component<br/>User Settings"]:::component
+        FORMERRORS["❌ Form Errors Store<br/>Global Error State"]:::store
+        ERRORHANDLER["🚨 Error Handler<br/>HTTP Error Interceptor"]:::service
+    end
+
+    %% Core Infrastructure
+    subgraph "Core Infrastructure"
+        APISERVICE["🔌 API Service<br/>HTTP Client Wrapper"]:::service
+        HTTPCLIENT["📡 HTTP Client<br/>Angular HTTP"]:::service
+        INTERCEPTOR["🛡️ Error Interceptor<br/>Global Error Handling"]:::service
+        TYPES["📊 API Types<br/>TypeScript Interfaces"]:::config
+    end
+
+    %% Data Flow Connections
+    APP --> CONFIG
+    CONFIG --> ENV
+    APP --> NAVBAR
+    APP --> FOOTER
+    
+    %% Authentication Flow
+    AUTHCOMP --> AUTHSTORE
+    AUTHSTORE --> AUTHSERVICE
+    AUTHSERVICE --> APISERVICE
+    AUTHGUARD --> AUTHSTORE
+    CONFIG --> AUTHGUARD
+
+    %% Articles Flow
+    ARTICLECOMP --> ARTICLESTORE
+    ARTICLEEDIT --> ARTICLESTORE
+    ARTICLESLIST --> ARTICLESLISTSTORE
+    ARTICLESTORE --> ARTICLESSERVICE
+    ARTICLESLISTSTORE --> ARTICLESSERVICE
+    ARTICLESTORE --> ACTIONSSERVICE
+    ARTICLESLISTSTORE --> ACTIONSSERVICE
+    ARTICLESSERVICE --> APISERVICE
+    ACTIONSSERVICE --> APISERVICE
+
+    %% Profile Flow
+    PROFILECOMP --> PROFILESTORE
+    PROFILESTORE --> PROFILESERVICE
+    PROFILESERVICE --> APISERVICE
+    PROFILERESOLVER --> PROFILESTORE
+
+    %% Home Flow
+    HOMECOMP --> HOMESTORE
+    HOMESTORE --> HOMESERVICE
+    HOMESERVICE --> APISERVICE
+
+    %% Settings Flow
+    SETTINGSCOMP --> AUTHSTORE
+    SETTINGSCOMP --> FORMERRORS
+
+    %% Core Infrastructure Flow
+    APISERVICE --> HTTPCLIENT
+    HTTPCLIENT --> INTERCEPTOR
+    INTERCEPTOR --> ERRORHANDLER
+    APISERVICE --> API
+    APISERVICE --> TYPES
+
+    %% External Dependencies
+    CSS --> APP
+    ICONS --> APP
+
+    %% Error Handling
+    FORMERRORS --> SETTINGSCOMP
+    FORMERRORS --> AUTHCOMP
+    ERRORHANDLER --> FORMERRORS
+
+    %% ======================================================================================
+    %% REQUIRED STYLE CLASSES FOR PROPER DIAGRAM RENDERING
+    %% ======================================================================================
+    classDef store fill:#3b82f6,stroke:#2563eb,stroke-width:3px,color:#ffffff
+    classDef service fill:#10b981,stroke:#059669,stroke-width:3px,color:#ffffff
+    classDef component fill:#f59e0b,stroke:#d97706,stroke-width:3px,color:#ffffff
+    classDef external fill:#ef4444,stroke:#dc2626,stroke-width:3px,color:#ffffff
+    classDef config fill:#8b5cf6,stroke:#7c3aed,stroke-width:3px,color:#ffffff
+
+    %% ======================================================================================
+    %% GITHUB CLICK EVENTS TEMPLATE - UPDATE URLS FOR DIFFERENT PROJECTS
+    %% ======================================================================================
+    click APP href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/apps/conduit/src/app/app.component.ts" _blank
+    click CONFIG href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/apps/conduit/src/app/app.config.ts" _blank
+    click ENV href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/apps/conduit/src/environments/environment.ts" _blank
+    click AUTHSTORE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/auth/data-access/src/auth.store.ts" _blank
+    click AUTHSERVICE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/auth/data-access/src/services/auth.service.ts" _blank
+    click AUTHGUARD href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/auth/data-access/src/services/auth-guard.ts" _blank
+    click ARTICLESTORE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/articles/data-access/src/article.store.ts" _blank
+    click ARTICLESLISTSTORE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/articles/data-access/src/articles-list.store.ts" _blank
+    click ARTICLESSERVICE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/articles/data-access/src/services/articles.service.ts" _blank
+    click ACTIONSSERVICE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/articles/data-access/src/services/actions.service.ts" _blank
+    click PROFILESTORE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/profile/data-access/src/profile.store.ts" _blank
+    click PROFILESERVICE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/profile/data-access/src/services/profile.service.ts" _blank
+    click PROFILERESOLVER href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/profile/data-access/src/resolvers/profile-resolver.ts" _blank
+    click HOMESTORE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/home/feature-home/src/home.store.ts" _blank
+    click HOMESERVICE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/home/feature-home/src/home.service.ts" _blank
+    click SETTINGSCOMP href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/settings/feature-settings/src/settings.component.ts" _blank
+    click FORMERRORS href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/core/forms/src/lib/forms-errors.store.ts" _blank
+    click ERRORHANDLER href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/core/error-handler/src/lib/error-handler.store.ts" _blank
+    click APISERVICE href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/core/http-client/src/lib/api.service.ts" _blank
+    click INTERCEPTOR href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/libs/core/error-handler/src/lib/error-handler-interceptor.service.ts" _blank
+    click NAVBAR href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/apps/conduit/src/app/layout/navbar/navbar.component.ts" _blank
+    click FOOTER href "https://github.com/jitesh-nagarro/angular-ngrx-realworld-example-app/blob/main/apps/conduit/src/app/layout/footer/footer.component.ts" _blank
+`;
+
+        // Zoom functionality
+        let currentZoom = 1.0;
+        const zoomStep = 0.2;
+        const minZoom = 0.2;
+        const maxZoom = 5.0;
+
+        function updateZoom(zoom) {
+            currentZoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+            const wrapper = document.getElementById('diagramWrapper');
+            
+            wrapper.style.transform = `scale(${currentZoom})`;
+            document.getElementById('zoomIndicator').textContent = `${Math.round(currentZoom * 100)}%`;
+        }
+
+        function zoomIn() {
+            zoomToPoint(currentZoom + zoomStep);
+        }
+
+        function zoomOut() {
+            zoomToPoint(currentZoom - zoomStep);
+        }
+
+        function zoomToPoint(newZoom) {
+            const viewport = document.querySelector('.diagram-viewport');
+            const container = document.querySelector('.diagram-container');
+            const wrapper = document.querySelector('#diagramWrapper');
+            
+            if (!viewport || !container || !wrapper) return;
+            
+            // Store the current viewport center relative to the container's scroll area
+            const containerRect = container.getBoundingClientRect();
+            const viewportRect = viewport.getBoundingClientRect();
+            
+            // Find the center point of the current view within the container
+            const centerX = viewport.scrollLeft + viewport.clientWidth / 2;
+            const centerY = viewport.scrollTop + viewport.clientHeight / 2;
+            
+            // Calculate this center as a percentage of the current scrollable area
+            const centerXPercent = centerX / container.scrollWidth;
+            const centerYPercent = centerY / container.scrollHeight;
+            
+            const oldZoom = currentZoom;
+            const targetZoom = Math.max(minZoom, Math.min(maxZoom, newZoom));
+            
+            // Update the zoom
+            updateZoom(targetZoom);
+            
+            // After zoom, the container size changes, so we need to wait and recalculate
+            setTimeout(() => {
+                // Find the new position that corresponds to the same percentage
+                const newCenterX = centerXPercent * container.scrollWidth;
+                const newCenterY = centerYPercent * container.scrollHeight;
+                
+                // Set scroll position to keep that center point in the middle of the viewport
+                viewport.scrollLeft = newCenterX - viewport.clientWidth / 2;
+                viewport.scrollTop = newCenterY - viewport.clientHeight / 2;
+                
+                // Ensure we don't scroll beyond boundaries
+                viewport.scrollLeft = Math.max(0, Math.min(viewport.scrollLeft, container.scrollWidth - viewport.clientWidth));
+                viewport.scrollTop = Math.max(0, Math.min(viewport.scrollTop, container.scrollHeight - viewport.clientHeight));
+            }, 100);
+        }
+
+        function resetZoom() {
+            updateZoom(1.0);
+            // Center the diagram after reset
+            setTimeout(() => {
+                centerDiagram();
+            }, 100);
+        }
+
+        function fitToScreen() {
+            const viewport = document.querySelector('.diagram-viewport');
+            const wrapper = document.querySelector('#diagramWrapper');
+            
+            if (!viewport || !wrapper) return;
+
+            // Reset transform to get actual dimensions
+            wrapper.style.transform = 'scale(1)';
+            
+            // Calculate optimal zoom
+            const viewportRect = viewport.getBoundingClientRect();
+            const availableWidth = viewportRect.width - 200; // Account for padding
+            const availableHeight = viewportRect.height - 200;
+            
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const diagramWidth = wrapperRect.width;
+            const diagramHeight = wrapperRect.height;
+            
+            const scaleX = availableWidth / diagramWidth;
+            const scaleY = availableHeight / diagramHeight;
+            
+            const optimalZoom = Math.max(Math.min(Math.min(scaleX, scaleY) * 0.9, maxZoom), minZoom);
+            updateZoom(optimalZoom);
+            
+            // Center after fitting
+            setTimeout(() => {
+                centerDiagram();
+            }, 100);
+        }
+
+        function centerDiagram() {
+            const viewport = document.querySelector('.diagram-viewport');
+            const container = document.querySelector('.diagram-container');
+            
+            if (!viewport || !container) return;
+            
+            // Center the diagram by calculating the middle of the scrollable area
+            const centerX = (container.scrollWidth - viewport.clientWidth) / 2;
+            const centerY = (container.scrollHeight - viewport.clientHeight) / 2;
+            
+            viewport.scrollLeft = Math.max(0, centerX);
+            viewport.scrollTop = Math.max(0, centerY);
+        }
+
+        function calculateOptimalZoom() {
+            const viewport = document.querySelector('.diagram-viewport');
+            const wrapper = document.querySelector('#diagramWrapper');
+            
+            if (!viewport || !wrapper) return 1.0;
+
+            wrapper.style.transform = 'scale(1)';
+            
+            const viewportRect = viewport.getBoundingClientRect();
+            const availableWidth = viewportRect.width - 100;
+            const availableHeight = viewportRect.height - 100;
+            
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const diagramWidth = wrapperRect.width;
+            const diagramHeight = wrapperRect.height;
+            
+            const scaleX = availableWidth / diagramWidth;
+            const scaleY = availableHeight / diagramHeight;
+            
+            const optimalZoom = Math.min(scaleX, scaleY) * 0.85; // 85% for better margins
+            return Math.max(Math.min(optimalZoom, maxZoom), minZoom);
+        }
+
+        function initializeOptimalZoom() {
+            setTimeout(() => {
+                const diagram = document.querySelector('#mermaid-diagram svg');
+                if (!diagram) {
+                    setTimeout(initializeOptimalZoom, 200);
+                    return;
+                }
+                
+                const optimalZoom = calculateOptimalZoom();
+                updateZoom(optimalZoom);
+                
+                // Center the diagram after initial load
+                setTimeout(() => {
+                    centerDiagram();
+                }, 100);
+                
+                console.log(`Auto-fit: Set zoom to ${Math.round(optimalZoom * 100)}% for optimal visibility`);
+            }, 500);
+        }
+
+        // Initialize diagram
+        mermaid.render('mermaid-svg', diagramDefinition).then(function(result) {
+            const diagramElement = document.getElementById('mermaid-diagram');
+            diagramElement.innerHTML = result.svg;
+            
+            // Apply intelligent auto-sizing
+            initializeOptimalZoom();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setTimeout(fitToScreen, 100);
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '=':
+                    case '+':
+                        e.preventDefault();
+                        zoomIn();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        zoomOut();
+                        break;
+                    case '0':
+                        e.preventDefault();
+                        resetZoom();
+                        break;
+                }
+            }
+        });
+
+        // Add mouse wheel zoom support
+        document.querySelector('.diagram-viewport').addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
